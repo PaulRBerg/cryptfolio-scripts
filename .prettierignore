@@ -1,0 +1,13 @@
+# directories
+**/build
+**/dist
+**/node_modules
+
+# files
+*.env
+*.log
+.DS_Store
+.pnp.*
+npm-debug.log
+pnpm-lock.yaml
+yarn.lock

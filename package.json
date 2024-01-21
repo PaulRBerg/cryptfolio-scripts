@@ -1,0 +1,36 @@
+{
+  "name": "cryptfolio-scripts",
+  "description": "Google Apps Script functions to help with tracking a crypto portfolio in Google Sheets",
+  "version": "1.0.0",
+  "author": {
+    "name": "Paul Razvan Berg",
+    "url": "https://github.com/PaulRBerg"
+  },
+  "bugs": {
+    "url": "https://github.com/PaulRBerg/cryptfolio-scripts/issues"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4"
+  },
+  "homepage": "https://github.com/PaulRBerg/cryptfolio-scripts#readme",
+  "keywords": [
+    "crypto",
+    "coingecko",
+    "coingecko-api",
+    "google",
+    "google-apps-script",
+    "google-sheets"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PaulRBerg/cryptfolio-scripts"
+  },
+  "scripts": {
+    "lint": "npm run prettier:check",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,yml}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,yml}\""
+  }
+}
