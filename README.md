@@ -11,17 +11,18 @@ _If this project helped you, consider buying me a coffee via [3Cities][3cities] 
 
 1. Obtain a CoinGecko Demo API by following the instructions
    [here](https://support.coingecko.com/hc/en-us/articles/21880397454233-User-Guide-How-to-sign-up-for-CoinGecko-Demo-API-and-generate-an-API-key).
-2. Fork the [Cryptfolio template][template] and open it in Google Sheets.
-3. From the toolbar, click on "Extensions", and then on "Apps Script".
-4. Copy and paste the contents of the [`cryptfolio.gs`](./src/cryptfolio.gs) file into the editor.
+2. Open the [Cryptfolio template][template] in Google Sheets.
+3. Click on "File", and then "Make a copy". This will create a copy of the template in Google Sheets.
+4. From the toolbar, click on "Extensions", and then on "Apps Script". You should be able to see the code now.
 5. Add the chains and tokens you want to track in the `chainIDs` and `tokenData` variables.
-6. Query the price data using the `GET_ALL_PRICES` function.
+6. Query the price data by running the `GET_ALL_PRICES` function.
 7. Use the `GET_ERC20_BALANCE` and `GET_NATIVE_BALANCE` functions to query your holdings in real-time.
 8. Calculate the USD value of your holdings by reading the local price data with `INDEX` and `MATCH`.
 
 > [!NOTE]
 >
-> The `GET_ALL_PRICES` can only be run from within Apps Script. See the [API](#api) section below.
+> The `GET_ALL_PRICES` can only be run from within Apps Script. See the [Custom Functions](#custom-functions) section
+> below.
 
 ## Demo
 
