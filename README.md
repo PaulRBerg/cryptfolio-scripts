@@ -24,7 +24,12 @@ _If this project helped you, consider buying me a coffee via [3Cities][3cities] 
 > The `GET_ALL_PRICES` can only be run from within Apps Script. See the [Custom Functions](#custom-functions) section
 > below.
 
-## Demo
+## Template
+
+The [template][template] shows how to query balances for ARB, ETH, MKR, and OP, and how to calculate the values of the
+holdings:
+
+![Demo](./demo.png)
 
 ## Rationale
 
