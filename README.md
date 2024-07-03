@@ -33,14 +33,15 @@ holdings:
 
 ## Rationale
 
-I built this because I was frustrated with the existing solutions, which are are either too complex, too expensive, or
-too fickly.
+I built this because I was frustrated with the existing solutions, which are either too complex, too expensive, or too
+unstable.
 
 Cryptfolio is:
 
 - Free to use
 - Minimalist
 - DYI and easy to customize
+- Functional; it just works
 
 ## Customization
 
