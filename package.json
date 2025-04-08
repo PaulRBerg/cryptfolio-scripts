@@ -21,9 +21,7 @@
     "google-apps-script",
     "google-sheets"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/PaulRBerg/cryptfolio-scripts"
