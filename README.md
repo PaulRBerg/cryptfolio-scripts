@@ -79,8 +79,7 @@ than those it returns a value to.
 
 ## Contributing
 
-Feel free to dive in! [Open](https://github.com/PaulRBerg/cryptfolio-scripts/issues/new) an issue,
-[start](https://github.com/PaulRBerg/cryptfolio-scripts/discussions/new) a discussion or submit a PR.
+Feel free to dive in! [Open](../../issues/new) an issue, [start](../../discussions/new) a discussion or submit a PR.
 
 ## CoinGecko
 
