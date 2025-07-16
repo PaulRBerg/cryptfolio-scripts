@@ -1,0 +1,13 @@
+{
+  "biome.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+  "[gs][javascript][json][jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[md][yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

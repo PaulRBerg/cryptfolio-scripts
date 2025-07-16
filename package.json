@@ -10,7 +10,8 @@
     "url": "https://github.com/PaulRBerg/cryptfolio-scripts/issues"
   },
   "devDependencies": {
-    "prettier": "^3.2.4"
+    "@biomejs/biome": "^2.1.1",
+    "prettier": "^3.6.2"
   },
   "homepage": "https://github.com/PaulRBerg/cryptfolio-scripts#readme",
   "keywords": [
@@ -24,11 +25,14 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/PaulRBerg/cryptfolio-scripts"
+    "url": "git+https://github.com/PaulRBerg/cryptfolio-scripts.git"
   },
   "scripts": {
-    "lint": "npm run prettier:check",
-    "prettier:check": "prettier --check \"**/*.{js,json,md,yml}\"",
-    "prettier:write": "prettier --write \"**/*.{js,json,md,yml}\""
+    "biome-check": "biome check .",
+    "biome-write": "biome check --write .",
+    "full-check": "bun run biome-check && bun run prettier-check",
+    "full-write": "bun run biome-write && bun run prettier-write",
+    "prettier:check": "prettier --check \"**/*.{md,yml}\"",
+    "prettier:write": "prettier --write \"**/*.{md,yml}\""
   }
 }

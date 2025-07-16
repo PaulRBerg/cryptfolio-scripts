@@ -2,8 +2,8 @@
 
 A collection of Google Apps Script custom functions for tracking crypto portfolios in Google Sheets.
 
-The price data is pulled using [CoinGecko's API](https://www.coingecko.com/en/api), and the token balances are obtained
-by making queries to various RPC servers like [PublicNode](https://publicnode.com/).
+The price data is pulled using [CoinGecko's API](https://coingecko.com/en/api), and the token balances are obtained by
+making queries to various RPC servers like [PublicNode](https://publicnode.com/).
 
 _If this project helped you, consider buying me a coffee via [3Cities][3cities] or [GitHub Sponsors][sponsors]_.
 
