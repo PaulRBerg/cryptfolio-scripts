@@ -14,14 +14,14 @@
 //////////////////////////////////////////////////////////////////////////*/
 
 /**
- * You have to obtain a CoinGecko demo API key.
+ * If you forked this file, you have to set the CoinGecko API key here.
  *
  * @see {@link https://support.coingecko.com/hc/en-us/articles/21880397454233-User-Guide-How-to-sign-up-for-CoinGecko-Demo-API-and-generate-an-API-key}
  */
 const COINGECKO_API_KEY = "ADD_YOUR_API_KEY_HERE";
 
 /**
- * Or, alternatively, if you are using this as a library, you can set the API key
+ * Alternatively, if you are using this as a library, you can set the API key
  * by calling this function.
  */
 function setCoinGeckoAPIKey(apiKey) {
@@ -80,10 +80,10 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
 
       // CoinGecko returns "{}" for some coins, e.g. listed but not launched
       if (!value || Object.keys(value).length === 0) {
-        console.warn("Could not access price data for %s", crypto);
+        console.warn("Could not access price data for %s", coin);
         prices.push(pricesValues[i]);
       } else {
-        const price = json[crypto].usd;
+        const price = json[coin][fiat];
         prices.push([price]);
       }
     }

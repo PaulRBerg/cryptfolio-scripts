@@ -42,7 +42,7 @@ const ChainNameMap = {
 
 const Default = {
   account: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-  coi: "aave",
+  coin: "aave",
   fiat: "usd",
   token: "USDC",
 };
@@ -104,8 +104,8 @@ const Token = {
   GEL: define("0x15b7c0c907e4C6b9AdaAaabC300C08991D6CEA05", 18),
   GRT: define("0xc944E90C64B2c07662A292be6244BDf05Cda44a7", 18),
   MKR: define("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", 18),
-  NOTE: define("0xCFEAead4947f0705A14ec42aC3D44129E1Ef3eD5", 8),
   OP: define("0x4200000000000000000000000000000000000042", 18),
+  PROVE: define("0x6BEF15D938d4E72056AC92Ea4bDD0D76B1C4ad29", 18),
   SAFE: define("0x5aFE3855358E112B5647B952709E6165e1c1eEEe", 18),
   SCR: define("0xd29687c813D741E2F938F4aC377128810E217b1b", 18),
   stETH: define("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84", 18),

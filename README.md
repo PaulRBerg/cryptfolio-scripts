@@ -14,7 +14,7 @@ _If this project helped you, consider buying me a coffee via [3Cities][3cities] 
 2. Open the [Cryptfolio template][template] in Google Sheets.
 3. Click on "File", and then "Make a copy". This will create a copy of the template in Google Sheets.
 4. From the toolbar, click on "Extensions", and then on "Apps Script". You should be able to see the code now.
-5. Add the chains and tokens you want to track in the `chainIDs` and `tokenData` variables.
+5. Add the chains and tokens you want to track in the `ChainId` and `Token` objects in [`data.gs`](./src/data.gs).
 6. Query the price data by running the `GET_ALL_PRICES` function.
 7. Use the `GET_ERC20_BALANCE` and `GET_NATIVE_BALANCE` functions to query your holdings in real-time.
 8. Calculate the USD value of your holdings by reading the local price data with `INDEX` and `MATCH`.
@@ -51,15 +51,17 @@ This project is meant to be forked and customized to your needs. Here are two co
 
 To track a new chain:
 
-- Add it in the `Chains` sheet in the spreadsheet.
-- Edit `chainIds` in [`cryptfolio.gs`](./src/cryptfolio.gs).
+- Add it to the `ChainId` object in [`data.gs`](./src/data.gs).
+- Add the corresponding RPC URL to the `RpcUrl` object.
+- Optionally add chain name mappings to the `ChainNameMap` object for easier reference.
 
 ### Tokens
 
 To track a new token:
 
-- List it in the `Prices` sheet in the spreadsheet. Ensure that the `CRYPTO_IDS` range got updated, too.
-- Edit the `tokenData` object in [`cryptfolio.gs`](./src/cryptfolio.gs).
+- List it in the `Data:Prices` sheet in the spreadsheet. Ensure that the `COIN_IDS` range got updated, too.
+- Add the token to the `Token` object in [`data.gs`](./src/data.gs) with its contract address and decimals.
+- For multi-chain tokens, use the chain-specific structure (see examples like `USDC` or `DAI`).
 
 ## Custom Functions
 
@@ -70,12 +72,12 @@ within the Apps Script environment. This is because a
 [custom function](https://developers.google.com/apps-script/guides/sheets/functions?hl=en) cannot affect cells other
 than those it returns a value to.
 
-| Function                 | Type  | Params                   | Description                                                                  |
-| ------------------------ | ----- | ------------------------ | ---------------------------------------------------------------------------- |
-| `GET_ERC20_BALANCE`      | Read  | (chainID,symbol,account) | Get the ERC-20 token balance of `account` on the chain with ID `chainID`     |
-| `GET_EVM_NATIVE_BALANCE` | Read  | (chainID,account)        | Get the EVM native asset balance of `account` on the chain with ID `chainID` |
-| `GET_ALL_PRICES`         | Write | (fiat)                   | Get the current `fiat` prices for all `CRYPTO_IDS`                           |
-| `GET_PRICE`              | Write | (crypto,fiat)            | Get the current `fiat` price for `crypto`                                    |
+| Function             | Type  | Params                 | Description                                                        |
+| -------------------- | ----- | ---------------------- | ------------------------------------------------------------------ |
+| `GET_ERC20_BALANCE`  | Read  | (chain,symbol,account) | Get the ERC-20 token balance of `account` on the specified `chain` |
+| `GET_NATIVE_BALANCE` | Read  | (chain,account)        | Get the native asset balance of `account` on the specified `chain` |
+| `GET_ALL_PRICES`     | Write | (fiat)                 | Get the current `fiat` prices for all `COIN_IDS`                   |
+| `GET_PRICE`          | Write | (coinId,fiat)          | Get the current `fiat` price for `coinId`                          |
 
 ## Contributing
 
@@ -83,8 +85,8 @@ Feel free to dive in! [Open](../../issues/new) an issue, [start](../../discussio
 
 ## CoinGecko
 
-This project couldn't exist without the [CoinGecko API](https://www.coingecko.com/en/api). Thank you for providing such
-a valuable service for free!
+This project couldn't exist without the [CoinGecko API](https://coingecko.com/en/api). Thank you for providing such a
+valuable service for free!
 
 ![CoinGecko Logo](./coingecko.png)
 
