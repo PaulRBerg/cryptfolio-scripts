@@ -34,6 +34,13 @@ const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3";
 const DATE_FORMAT = "MMM,d yyyy HH:mm:ss";
 const TIMEZONE = "Europe/London";
 
+// Retry mechanism configuration
+const RETRY_MAX_ATTEMPTS = 3;
+const RETRY_INITIAL_DELAY_MS = 1000;
+const RETRY_MAX_DELAY_MS = 32000;
+const RETRY_BACKOFF_MULTIPLIER = 2;
+const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
+
 /*//////////////////////////////////////////////////////////////////////////
                             SPREADSHEET FUNCTIONS
 //////////////////////////////////////////////////////////////////////////*/
@@ -59,7 +66,7 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
   refreshScriptLastRunAt_();
 
   try {
-    const response = UrlFetchApp.fetch(url, options).getContentText();
+    const response = fetchWithRetry_(url, options).getContentText();
     if (!response) {
       throw new Error("GET_ALL_PRICES: Parse response");
     } else if (response === "Throttled") {
@@ -126,7 +133,7 @@ function GET_ERC20_BALANCE(chain = ChainId.ethereum, tokenSymbol = Default.token
       params: [call, "latest"],
     }),
   };
-  const response = UrlFetchApp.fetch(url, options).getContentText();
+  const response = fetchWithRetry_(url, options).getContentText();
   if (!response) {
     throw new Error("GET_ERC20_BALANCE: Parse response");
   }
@@ -163,7 +170,7 @@ function GET_NATIVE_BALANCE(chain = ChainId.ethereum, account = Default.account)
     }),
   };
 
-  const response = UrlFetchApp.fetch(url, options).getContentText();
+  const response = fetchWithRetry_(url, options).getContentText();
   if (!response) {
     throw new Error("GET_NATIVE_BALANCE: Parse response");
   }
@@ -194,7 +201,7 @@ function GET_PRICE(coinId = Default.coin, fiat = Default.fiat) {
   url += "&vs_currencies=" + fiat;
   const options = { muteHttpExceptions: true };
 
-  const response = UrlFetchApp.fetch(url, options).getContentText();
+  const response = fetchWithRetry_(url, options).getContentText();
   if (!response) {
     throw new Error("GET_PRICE: Parse response");
   }
@@ -210,6 +217,102 @@ function GET_PRICE(coinId = Default.coin, fiat = Default.fiat) {
 /* -------------------------------------------------------------------------- */
 /*                               INTERNAL LOGIC                               */
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------- Error Handling ------------------------------ */
+
+function handleJSONErrors_(json) {
+  // CoinGecko API Rate Limit
+  if (json?.status?.error_code === 429) {
+    throw new Error("CoinGecko API rate limit exceeded");
+  }
+  // Other CoinGecko API error
+  if (json?.status?.error_code) {
+    throw new Error("Unknown CoinGecko API error");
+  }
+}
+
+function throwError(message) {
+  const spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRangeByName(Range.pricesError).setValue(message);
+  throw new Error(message);
+}
+
+/* -------------------------------- HTTP & Retry -------------------------------- */
+
+/**
+ * Calculates the delay for exponential backoff with jitter.
+ *
+ * @param {number} attempt - The current attempt number (0-indexed)
+ * @param {number} initialDelay - Initial delay in milliseconds
+ * @param {number} maxDelay - Maximum delay in milliseconds
+ * @param {number} multiplier - Backoff multiplier
+ * @returns {number} Delay in milliseconds
+ */
+function calculateBackoffDelay_(attempt, initialDelay, maxDelay, multiplier) {
+  // Calculate exponential backoff: initialDelay * (multiplier ^ attempt)
+  const exponentialDelay = initialDelay * multiplier ** attempt;
+
+  // Cap at maxDelay
+  const cappedDelay = Math.min(exponentialDelay, maxDelay);
+
+  // Add jitter: random value between 80% and 120% of the delay
+  const jitter = 0.8 + Math.random() * 0.4;
+
+  return Math.floor(cappedDelay * jitter);
+}
+
+/**
+ * Fetches a URL with retry logic and exponential backoff.
+ *
+ * @param {string} url - The URL to fetch
+ * @param {object} options - Options to pass to UrlFetchApp.fetch()
+ * @param {object} config - Retry configuration (optional)
+ * @returns {HTTPResponse} The HTTP response object
+ */
+function fetchWithRetry_(url, options, config = {}) {
+  const maxAttempts = config.maxAttempts || RETRY_MAX_ATTEMPTS;
+  const initialDelay = config.initialDelayMs || RETRY_INITIAL_DELAY_MS;
+  const maxDelay = config.maxDelayMs || RETRY_MAX_DELAY_MS;
+  const backoffMultiplier = config.backoffMultiplier || RETRY_BACKOFF_MULTIPLIER;
+  const retryableStatusCodes = config.retryableStatusCodes || RETRY_STATUS_CODES;
+
+  let lastError;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = UrlFetchApp.fetch(url, options);
+      const statusCode = response.getResponseCode();
+
+      // Check if we should retry based on status code
+      if (retryableStatusCodes.includes(statusCode)) {
+        lastError = new Error(`HTTP ${statusCode} error`);
+
+        if (attempt < maxAttempts - 1) {
+          const delay = calculateBackoffDelay_(attempt, initialDelay, maxDelay, backoffMultiplier);
+          console.warn(`Attempt ${attempt + 1} failed with status ${statusCode}, retrying in ${delay}ms...`);
+          Utilities.sleep(delay);
+          continue;
+        }
+      }
+
+      // Success or non-retryable status code
+      return response;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < maxAttempts - 1) {
+        const delay = calculateBackoffDelay_(attempt, initialDelay, maxDelay, backoffMultiplier);
+        console.warn(`Attempt ${attempt + 1} failed with error: ${error.message}, retrying in ${delay}ms...`);
+        Utilities.sleep(delay);
+      }
+    }
+  }
+
+  // All retries exhausted
+  throw new Error(`Failed after ${maxAttempts} attempts: ${lastError.message}`);
+}
+
+/* ---------------------------------- Helpers ----------------------------------- */
 
 function fromHex_(value) {
   return parseInt(value, 16);
@@ -252,17 +355,6 @@ function getToken_(chainID = ChainId.ethereum, symbol = Default.token) {
   return token[chainID] || token.default || token;
 }
 
-function handleJSONErrors_(json) {
-  // CoinGecko API Rate Limit
-  if (json?.status?.error_code === 429) {
-    throw new Error("CoinGecko API rate limit exceeded");
-  }
-  // Other CoinGecko API error
-  if (json?.status?.error_code) {
-    throw new Error("Unknown CoinGecko API error");
-  }
-}
-
 function refreshPricesLastUpdatedAt_() {
   const cell = SpreadsheetApp.getActive().getRangeByName(Range.pricesLastUpdatedAt);
   cell.setValue(Utilities.formatDate(new Date(), TIMEZONE, DATE_FORMAT));
@@ -271,10 +363,4 @@ function refreshPricesLastUpdatedAt_() {
 function refreshScriptLastRunAt_() {
   const cell = SpreadsheetApp.getActive().getRangeByName(Range.scriptLastRunAt);
   cell.setValue(Utilities.formatDate(new Date(), TIMEZONE, DATE_FORMAT));
-}
-
-function throwError(message) {
-  const spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.getRangeByName(Range.pricesError).setValue(message);
-  throw new Error(message);
 }
