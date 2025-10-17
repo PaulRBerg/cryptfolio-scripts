@@ -55,9 +55,12 @@ function setCoinGeckoAPIKey(apiKey) {
  * @see {@link https://docs.coingecko.com/reference/simple-price}
  */
 function GET_ALL_PRICES(fiat = Default.fiat) {
-  // Read the IDs from the spreadsheet.
+  // Read the symbols from the spreadsheet.
   const spreadsheet = SpreadsheetApp.getActive();
-  const coins = spreadsheet.getRangeByName(Range.coinIds).getValues().flat().map(String);
+  const symbols = spreadsheet.getRangeByName(Range.symbols).getValues().flat().filter(Boolean); // flatten and remove empty values
+
+  // Map symbols to their CoinGecko IDs
+  const coins = symbols.map((symbol) => CoinGeckoId[symbol]).filter(Boolean); // remove undefined values
 
   // Construct the API URL.
   let url = COINGECKO_BASE_URL + "/simple/price";
@@ -331,7 +334,7 @@ function getChainID_(chainIdOrName) {
   }
   const chainId = ChainNameMap[chainIdOrName.toLowerCase()];
   if (!chainId) {
-    throw new Error(`Unknown chain name: ${chainIdOrName}`);
+    throw new Error(`Unknown chain ID or chain name: ${chainIdOrName}`);
   }
   return chainId;
 }

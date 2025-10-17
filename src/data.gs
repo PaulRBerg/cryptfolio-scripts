@@ -1,4 +1,10 @@
-// @see {@link https://chainlist.org}
+/* -------------------------------------------------------------------------- */
+/*                                 DEFINITIONS                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @see {@link https://chainlist.org}
+ */
 const ChainId = {
   abstract: 2741,
   arbitrum: 42161,
@@ -75,6 +81,38 @@ const ChainNameMap = {
   "zksync era": ChainId.zksync,
 };
 
+const CoinGeckoId = {
+  AAVE: "aave",
+  ARB: "arbitrum",
+  ATOM: "cosmos",
+  AVAIL: "avail",
+  AVAX: "avalanche-2",
+  BERA: "berachain-bera",
+  BNB: "binancecoin",
+  CHZ: "chiliz",
+  DYDX: "dydx",
+  DYN: "dymension",
+  EIGEN: "eigenlayer",
+  ENS: "ethereum-name-service",
+  ETH: "ethereum",
+  FUEL: "fuel-network",
+  GRT: "the-graph",
+  HYPE: "hyperliquid",
+  MKR: "maker",
+  OP: "optimism",
+  POL: "matic-network",
+  PROVE: "succinct",
+  S: "sonic-3",
+  SAFE: "safe",
+  SOL: "solana",
+  SOPH: "sophon",
+  STRK: "starknet",
+  TIA: "celestia",
+  XDC: "xdce-crowd-sale",
+  ZEC: "zcash",
+  ZK: "zksync",
+};
+
 const Default = {
   account: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
   coin: "aave",
@@ -84,11 +122,11 @@ const Default = {
 
 // Make sure to have the following named ranges in your Google Sheet:
 const Range = {
-  coinIds: "COIN_IDS",
   prices: "PRICES",
   pricesError: "PRICES_ERROR",
   pricesLastUpdatedAt: "PRICES_LAST_UPDATED_AT",
   scriptLastRunAt: "SCRIPT_LAST_RUN_AT",
+  symbols: "SYMBOLS",
 };
 
 const RpcUrl = {
@@ -121,6 +159,10 @@ const RpcUrl = {
 const Sheet = {
   dataPrices: "Data:Prices",
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                  FUNCTIONS                                 */
+/* -------------------------------------------------------------------------- */
 
 // Helper function to create token objects
 function define(address, decimals) {
