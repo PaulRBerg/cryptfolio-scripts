@@ -5,6 +5,7 @@
       "name": "cryptfolio-scripts",
       "devDependencies": {
         "@biomejs/biome": "^2.2.5",
+        "@sablier/devkit": "^1.0.0",
         "prettier": "^3.6.2",
       },
     },
@@ -27,6 +28,8 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.2.6", "", { "os": "win32", "cpu": "arm64" }, "sha512-h3A88G8PGM1ryTeZyLlSdfC/gz3e95EJw9BZmA6Po412DRqwqPBa2Y9U+4ZSGUAXCsnSQE00jLV8Pyrh0d+jQw=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.6", "", { "os": "win32", "cpu": "x64" }, "sha512-yx0CqeOhPjYQ5ZXgPfu8QYkgBhVJyvWe36as7jRuPrKPO5ylVDfwVtPQ+K/mooNTADW0IhxOZm3aPu16dP8yNQ=="],
+
+    "@sablier/devkit": ["@sablier/devkit@1.0.0", "", {}, "sha512-/u3poV+wPs3bG92g953OiY224W+xYU2/DpU2NkD0DIOhJ3POal2BrRN1eGHUzLk/WJA52M9G7b8Dxms11Uco6Q=="],
 
     "prettier": ["prettier@3.6.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ=="],
   }

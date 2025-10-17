@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
+    "@sablier/devkit": "^1.0.0",
     "prettier": "^3.6.2"
   },
   "homepage": "https://github.com/PaulRBerg/cryptfolio-scripts#readme",
@@ -26,13 +27,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PaulRBerg/cryptfolio-scripts.git"
-  },
-  "scripts": {
-    "biome-check": "biome check .",
-    "biome-write": "biome check --write .",
-    "full-check": "bun run biome-check && bun run prettier-check",
-    "full-write": "bun run biome-write && bun run prettier-write",
-    "prettier:check": "prettier --check \"**/*.{md,yml}\"",
-    "prettier:write": "prettier --write \"**/*.{md,yml}\""
   }
 }
