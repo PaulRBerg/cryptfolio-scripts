@@ -325,17 +325,15 @@ function fromHex_(value) {
   return parseInt(value, 16);
 }
 
-function getChainID_(chain) {
-  if (typeof chain === "number") {
-    return chain;
+function getChainID_(chainIdOrName) {
+  if (typeof chainIdOrName === "number") {
+    return chainIdOrName;
   }
-
-  const chainID = ChainNameMap[chain.toLowerCase()];
-  if (!chainID) {
-    throw new Error(`Unknown chain name: ${chain}`);
+  const chainId = ChainNameMap[chainIdOrName.toLowerCase()];
+  if (!chainId) {
+    throw new Error(`Unknown chain name: ${chainIdOrName}`);
   }
-
-  return chainID;
+  return chainId;
 }
 
 function getCoinGeckoAPIKey_() {
