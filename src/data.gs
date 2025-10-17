@@ -100,7 +100,7 @@ const CoinGeckoId = {
   HYPE: "hyperliquid",
   MKR: "maker",
   OP: "optimism",
-  POL: "matic-network",
+  POL: "polygon-ecosystem-token",
   PROVE: "succinct",
   S: "sonic-3",
   SAFE: "safe",
