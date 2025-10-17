@@ -9,9 +9,25 @@
 
 */
 
-/*//////////////////////////////////////////////////////////////////////////
-                                    SETUP
-//////////////////////////////////////////////////////////////////////////*/
+/* -------------------------------------------------------------------------- */
+/*                                  CONSTANTS                                 */
+/* -------------------------------------------------------------------------- */
+
+const BALANCE_OF_SIGHASH = "70a08231"; // this is keccak256("balanceOf(address)")
+const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3";
+const DATE_FORMAT = "MMM, d yyyy HH:mm:ss"; // e.g. "Oct, 17 2025 12:00:00"
+const TIMEZONE = "UTC";
+
+// Retry mechanism configuration
+const RETRY_BACKOFF_MULTIPLIER = 2;
+const RETRY_INITIAL_DELAY_MS = 1000;
+const RETRY_MAX_ATTEMPTS = 3;
+const RETRY_MAX_DELAY_MS = 32000;
+const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
+
+/* -------------------------------------------------------------------------- */
+/*                                    SETUP                                   */
+/* -------------------------------------------------------------------------- */
 
 /**
  * If you forked this file, you have to set the CoinGecko API key here.
@@ -29,21 +45,9 @@ function setCoinGeckoAPIKey(apiKey) {
   properties.setProperty("COINGECKO_API_KEY", apiKey);
 }
 
-const BALANCE_OF_SIGHASH = "70a08231"; // this is keccak256("balanceOf(address)")
-const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3";
-const DATE_FORMAT = "MMM,d yyyy HH:mm:ss";
-const TIMEZONE = "Europe/London";
-
-// Retry mechanism configuration
-const RETRY_MAX_ATTEMPTS = 3;
-const RETRY_INITIAL_DELAY_MS = 1000;
-const RETRY_MAX_DELAY_MS = 32000;
-const RETRY_BACKOFF_MULTIPLIER = 2;
-const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
-
-/*//////////////////////////////////////////////////////////////////////////
-                            SPREADSHEET FUNCTIONS
-//////////////////////////////////////////////////////////////////////////*/
+/* -------------------------------------------------------------------------- */
+/*                            SPREADSHEET FUNCTIONS                           */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Queries the CoinGecko API to obtain the current fiat price for all cryptocurrencies in the spreadsheet.
@@ -218,8 +222,11 @@ function GET_PRICE(coinId = Default.coin, fiat = Default.fiat) {
 /*                               INTERNAL LOGIC                               */
 /* -------------------------------------------------------------------------- */
 
-/* -------------------------------- Error Handling ------------------------------ */
+/* ----------------------------- Error Handling ----------------------------- */
 
+/**
+ * @see https://support.coingecko.com/hc/en-us/articles/4538787440153-Why-am-I-getting-errors-with-a-status-code-429
+ */
 function handleJSONErrors_(json) {
   // CoinGecko API Rate Limit
   if (json?.status?.error_code === 429) {
@@ -237,7 +244,7 @@ function throwError(message) {
   throw new Error(message);
 }
 
-/* -------------------------------- HTTP & Retry -------------------------------- */
+/* ------------------------------ HTTP & Retry ------------------------------ */
 
 /**
  * Calculates the delay for exponential backoff with jitter.
@@ -312,7 +319,7 @@ function fetchWithRetry_(url, options, config = {}) {
   throw new Error(`Failed after ${maxAttempts} attempts: ${lastError.message}`);
 }
 
-/* ---------------------------------- Helpers ----------------------------------- */
+/* --------------------------------- Helpers -------------------------------- */
 
 function fromHex_(value) {
   return parseInt(value, 16);

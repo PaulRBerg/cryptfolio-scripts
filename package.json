@@ -10,7 +10,7 @@
     "url": "https://github.com/PaulRBerg/cryptfolio-scripts/issues"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.1.1",
+    "@biomejs/biome": "^2.2.5",
     "prettier": "^3.6.2"
   },
   "homepage": "https://github.com/PaulRBerg/cryptfolio-scripts#readme",
