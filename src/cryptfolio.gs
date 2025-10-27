@@ -73,13 +73,23 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
   refreshScriptLastRunAt_();
 
   try {
-    const response = fetchWithRetry_(url, options).getContentText();
-    if (!response) {
-      throw new Error("GET_ALL_PRICES: Parse response");
-    } else if (response === "Throttled") {
-      throw new Error("GET_ALL_PRICES: CoinGecko API rate limit");
+    const httpResponse = fetchWithRetry_(url, options);
+    const responseText = validateJSONResponse_(httpResponse, "GET_ALL_PRICES");
+
+    if (!responseText) {
+      throw new Error("GET_ALL_PRICES: Empty response from CoinGecko API");
     }
-    const json = JSON.parse(response);
+
+    let json;
+    try {
+      json = JSON.parse(responseText);
+    } catch (parseError) {
+      const preview = responseText.substring(0, 500);
+      throw new Error(
+        `GET_ALL_PRICES: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
+      );
+    }
+
     handleJSONErrors_(json);
 
     // Load the existing prices range.
@@ -140,11 +150,23 @@ function GET_ERC20_BALANCE(chain = ChainId.ethereum, tokenSymbol = Default.token
       params: [call, "latest"],
     }),
   };
-  const response = fetchWithRetry_(url, options).getContentText();
-  if (!response) {
-    throw new Error("GET_ERC20_BALANCE: Parse response");
+  const httpResponse = fetchWithRetry_(url, options);
+  const responseText = validateJSONResponse_(httpResponse, "GET_ERC20_BALANCE");
+
+  if (!responseText) {
+    throw new Error("GET_ERC20_BALANCE: Empty response from RPC");
   }
-  const json = JSON.parse(response);
+
+  let json;
+  try {
+    json = JSON.parse(responseText);
+  } catch (parseError) {
+    const preview = responseText.substring(0, 500);
+    throw new Error(
+      `GET_ERC20_BALANCE: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
+    );
+  }
+
   handleJSONErrors_(json);
 
   if (!json.result) {
@@ -177,11 +199,23 @@ function GET_NATIVE_BALANCE(chain = ChainId.ethereum, account = Default.account)
     }),
   };
 
-  const response = fetchWithRetry_(url, options).getContentText();
-  if (!response) {
-    throw new Error("GET_NATIVE_BALANCE: Parse response");
+  const httpResponse = fetchWithRetry_(url, options);
+  const responseText = validateJSONResponse_(httpResponse, "GET_NATIVE_BALANCE");
+
+  if (!responseText) {
+    throw new Error("GET_NATIVE_BALANCE: Empty response from RPC");
   }
-  const json = JSON.parse(response);
+
+  let json;
+  try {
+    json = JSON.parse(responseText);
+  } catch (parseError) {
+    const preview = responseText.substring(0, 500);
+    throw new Error(
+      `GET_NATIVE_BALANCE: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
+    );
+  }
+
   handleJSONErrors_(json);
 
   if (!json.result) {
@@ -208,11 +242,23 @@ function GET_PRICE(coinId = Default.coin, fiat = Default.fiat) {
   url += "&vs_currencies=" + fiat;
   const options = { muteHttpExceptions: true };
 
-  const response = fetchWithRetry_(url, options).getContentText();
-  if (!response) {
-    throw new Error("GET_PRICE: Parse response");
+  const httpResponse = fetchWithRetry_(url, options);
+  const responseText = validateJSONResponse_(httpResponse, "GET_PRICE");
+
+  if (!responseText) {
+    throw new Error("GET_PRICE: Empty response from CoinGecko API");
   }
-  const json = JSON.parse(response);
+
+  let json;
+  try {
+    json = JSON.parse(responseText);
+  } catch (parseError) {
+    const preview = responseText.substring(0, 500);
+    throw new Error(
+      `GET_PRICE: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
+    );
+  }
+
   handleJSONErrors_(json);
 
   if (!json[coinId] || !json[coinId][fiat]) {
@@ -293,6 +339,14 @@ function fetchWithRetry_(url, options, config = {}) {
       const response = UrlFetchApp.fetch(url, options);
       const statusCode = response.getResponseCode();
 
+      // Check for client errors (4xx) - these should not be retried
+      if (statusCode >= 400 && statusCode < 500) {
+        const preview = response.getContentText().substring(0, 200);
+        throw new Error(
+          `HTTP ${statusCode} client error - ${preview}${response.getContentText().length > 200 ? "..." : ""}`,
+        );
+      }
+
       // Check if we should retry based on status code
       if (retryableStatusCodes.includes(statusCode)) {
         lastError = new Error(`HTTP ${statusCode} error`);
@@ -323,6 +377,46 @@ function fetchWithRetry_(url, options, config = {}) {
 }
 
 /* --------------------------------- Helpers -------------------------------- */
+
+/**
+ * Validates that a response contains valid JSON and not HTML.
+ *
+ * @param {HTTPResponse} response - The HTTP response object
+ * @param {string} context - Context string for error messages (e.g., "GET_ALL_PRICES")
+ * @throws {Error} If response appears to be HTML or invalid JSON
+ * @returns {string} The response content text
+ */
+function validateJSONResponse_(response, context) {
+  const statusCode = response.getResponseCode();
+  const contentType = response.getHeaders()["Content-Type"] || "";
+  const text = response.getContentText();
+
+  // Check for HTTP error codes that should fail immediately
+  if (statusCode >= 400 && statusCode < 500) {
+    const preview = text.substring(0, 200).replace(/\n/g, " ");
+    throw new Error(
+      `${context}: HTTP ${statusCode} error - ${preview}${text.length > 200 ? "..." : ""}`,
+    );
+  }
+
+  // Check if response is HTML instead of JSON
+  const trimmedText = text.trim();
+  if (trimmedText.startsWith("<!DOCTYPE") || trimmedText.startsWith("<html")) {
+    const preview = text.substring(0, 200).replace(/\n/g, " ");
+    throw new Error(
+      `${context}: Received HTML instead of JSON (status ${statusCode}). Response: ${preview}${text.length > 200 ? "..." : ""}`,
+    );
+  }
+
+  // Check content type if present
+  if (contentType && !contentType.includes("application/json") && !contentType.includes("text/plain")) {
+    throw new Error(
+      `${context}: Unexpected content type "${contentType}" (expected application/json)`,
+    );
+  }
+
+  return text;
+}
 
 function fromHex_(value) {
   return parseInt(value, 16);
