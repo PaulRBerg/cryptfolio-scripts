@@ -57,57 +57,82 @@ function setCoinGeckoAPIKey(apiKey) {
 function GET_ALL_PRICES(fiat = Default.fiat) {
   // Read the symbols from the spreadsheet.
   const spreadsheet = SpreadsheetApp.getActive();
-  const symbols = spreadsheet.getRangeByName(Range.symbols).getValues().flat().filter(Boolean); // flatten and remove empty values
+  const symbolsRange = spreadsheet.getRangeByName(Range.symbols);
+  const symbols = symbolsRange.getValues().flat();
+  const normalizedSymbols = symbols.map((symbol) => normalizeSymbol_(symbol));
 
   // Map symbols to their CoinGecko IDs
-  const coins = symbols.map((symbol) => CoinGeckoId[symbol]).filter(Boolean); // remove undefined values
+  const coinIdsByRow = normalizedSymbols.map((symbol) => (symbol ? CoinGeckoId[symbol] : null));
+  const coins = Array.from(new Set(coinIdsByRow.filter(Boolean))); // remove undefined values and dedupe
+
+  // Load the existing prices range.
+  const pricesSheet = spreadsheet.getSheetByName(Sheet.dataPrices);
+  const pricesRange = pricesSheet.getRange(Range.prices);
+  const pricesValues = pricesRange.getValues();
+
+  if (pricesValues.length !== symbols.length) {
+    throwError(
+      `GET_ALL_PRICES: SYMBOLS range row count (${symbols.length}) must match PRICES range row count (${pricesValues.length})`,
+    );
+  }
 
   // Construct the API URL.
-  let url = COINGECKO_BASE_URL + "/simple/price";
-  url += "?x_cg_demo_api_key=" + getCoinGeckoAPIKey_();
-  url += "&ids=" + coins.join(",");
-  url += "&vs_currencies=" + fiat;
   const options = { muteHttpExceptions: true };
 
   // Refresh the "Script Last Run At" cell.
   refreshScriptLastRunAt_();
 
   try {
-    const httpResponse = fetchWithRetry_(url, options);
-    const responseText = validateJSONResponse_(httpResponse, "GET_ALL_PRICES");
+    let json = {};
 
-    if (!responseText) {
-      throw new Error("GET_ALL_PRICES: Empty response from CoinGecko API");
+    if (coins.length > 0) {
+      let url = COINGECKO_BASE_URL + "/simple/price";
+      url += "?x_cg_demo_api_key=" + getCoinGeckoAPIKey_();
+      url += "&ids=" + coins.join(",");
+      url += "&vs_currencies=" + fiat;
+
+      const httpResponse = fetchWithRetry_(url, options);
+      const responseText = validateJSONResponse_(httpResponse, "GET_ALL_PRICES");
+
+      if (!responseText) {
+        throw new Error("GET_ALL_PRICES: Empty response from CoinGecko API");
+      }
+
+      try {
+        json = JSON.parse(responseText);
+      } catch (parseError) {
+        const preview = responseText.substring(0, 500);
+        throw new Error(
+          `GET_ALL_PRICES: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
+        );
+      }
+
+      handleJSONErrors_(json);
     }
-
-    let json;
-    try {
-      json = JSON.parse(responseText);
-    } catch (parseError) {
-      const preview = responseText.substring(0, 500);
-      throw new Error(
-        `GET_ALL_PRICES: Failed to parse JSON. Response preview: ${preview}${responseText.length > 500 ? "..." : ""}`,
-      );
-    }
-
-    handleJSONErrors_(json);
-
-    // Load the existing prices range.
-    const pricesSheet = spreadsheet.getSheetByName(Sheet.dataPrices);
-    const pricesRange = pricesSheet.getRange(Range.prices);
-    const pricesValues = pricesRange.getValues();
 
     const prices = [];
-    for (let i = 0; i < coins.length; i++) {
-      const coin = coins[i];
-      const value = json[coin];
+    for (let i = 0; i < normalizedSymbols.length; i++) {
+      const symbol = normalizedSymbols[i];
+      const coinId = coinIdsByRow[i];
+
+      if (!symbol) {
+        prices.push([""]);
+        continue;
+      }
+
+      if (!coinId) {
+        prices.push([`Unknown symbol: ${symbol}`]);
+        continue;
+      }
+
+      const value = json[coinId];
 
       // CoinGecko returns "{}" for some coins, e.g. listed but not launched
       if (!value || Object.keys(value).length === 0) {
-        console.warn("Could not access price data for %s", coin);
+        console.warn("Could not access price data for %s", coinId);
         prices.push(pricesValues[i]);
       } else {
-        const price = json[coin][fiat];
+        const price = json[coinId][fiat];
         prices.push([price]);
       }
     }
@@ -173,12 +198,7 @@ function GET_ERC20_BALANCE(chain = ChainId.ethereum, tokenSymbol = Default.token
     throw new Error("GET_ERC20_BALANCE: No balance returned");
   }
   const hexBalance = json.result;
-  const balance = fromHex_(hexBalance) / 10 ** token.decimals;
-  if (balance) {
-    return balance;
-  } else {
-    return 0;
-  }
+  return formatUnits_(fromHex_(hexBalance), token.decimals);
 }
 
 /**
@@ -222,12 +242,7 @@ function GET_NATIVE_BALANCE(chain = ChainId.ethereum, account = Default.account)
     throw new Error("GET_NATIVE_BALANCE: No balance returned");
   }
   const hexBalance = json.result;
-  const balance = fromHex_(hexBalance) / 1e18;
-  if (balance) {
-    return balance;
-  } else {
-    return 0;
-  }
+  return formatUnits_(fromHex_(hexBalance), 18);
 }
 
 /**
@@ -418,8 +433,49 @@ function validateJSONResponse_(response, context) {
   return text;
 }
 
+function normalizeSymbol_(symbol) {
+  if (symbol === null || symbol === undefined) {
+    return "";
+  }
+  const text = String(symbol).trim();
+  if (!text) {
+    return "";
+  }
+  return text.toUpperCase();
+}
+
 function fromHex_(value) {
-  return parseInt(value, 16);
+  if (typeof BigInt !== "function") {
+    throw new Error("BigInt is not available in this Apps Script runtime. Enable V8.");
+  }
+  if (!value || value === "0x" || value === "0X") {
+    return BigInt("0");
+  }
+  return BigInt(String(value));
+}
+
+function formatUnits_(value, decimals) {
+  if (typeof BigInt !== "function") {
+    throw new Error("BigInt is not available in this Apps Script runtime. Enable V8.");
+  }
+  if (!Number.isInteger(decimals) || decimals < 0) {
+    throw new Error(`Invalid token decimals: ${decimals}`);
+  }
+  const zero = BigInt("0");
+  const negative = value < zero;
+  const base = BigInt("10") ** BigInt(String(decimals));
+  const abs = negative ? -value : value;
+  const whole = abs / base;
+  const fraction = abs % base;
+
+  if (decimals === 0 || fraction === zero) {
+    return `${negative ? "-" : ""}${whole.toString()}`;
+  }
+
+  let fractionText = fraction.toString().padStart(decimals, "0");
+  fractionText = fractionText.replace(/0+$/, "");
+
+  return `${negative ? "-" : ""}${whole.toString()}.${fractionText}`;
 }
 
 function getChainID_(chainIdOrName) {
