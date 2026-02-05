@@ -58,7 +58,7 @@ function setCoinGeckoAPIKey(apiKey) {
 function GET_ALL_PRICES(fiat = Default.fiat) {
   // Read the symbols from the spreadsheet.
   const spreadsheet = SpreadsheetApp.getActive();
-  const symbolsRange = spreadsheet.getRangeByName(Range.symbols);
+  const symbolsRange = spreadsheet.getRangeByName(NamedRange.symbols);
   const symbols = symbolsRange.getValues().flat();
   const normalizedSymbols = symbols.map((symbol) => normalizeSymbol_(symbol));
 
@@ -68,7 +68,7 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
 
   // Load the existing prices range.
   const pricesSheet = spreadsheet.getSheetByName(Sheet.dataPrices);
-  const pricesRange = pricesSheet.getRange(Range.prices);
+  const pricesRange = pricesSheet.getRange(NamedRange.prices);
   const pricesValues = pricesRange.getValues();
 
   if (pricesValues.length !== symbols.length) {
@@ -94,10 +94,6 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
 
       const httpResponse = fetchWithRetry_(url, options);
       const responseText = validateJSONResponse_(httpResponse, "GET_ALL_PRICES");
-
-      if (!responseText) {
-        throw new Error("GET_ALL_PRICES: Empty response from CoinGecko API");
-      }
 
       try {
         json = JSON.parse(responseText);
@@ -144,7 +140,7 @@ function GET_ALL_PRICES(fiat = Default.fiat) {
     refreshPricesLastUpdatedAt_();
 
     // Clear the error from the "Error" cell.
-    spreadsheet.getRangeByName(Range.pricesError).setValue("No Error");
+    spreadsheet.getRangeByName(NamedRange.pricesError).setValue("No Error");
   } catch (error) {
     throwError(error);
   }
@@ -178,10 +174,6 @@ function GET_ERC20_BALANCE(chain = ChainId.ethereum, tokenSymbol = Default.token
   };
   const httpResponse = fetchWithRetry_(url, options);
   const responseText = validateJSONResponse_(httpResponse, "GET_ERC20_BALANCE");
-
-  if (!responseText) {
-    throw new Error("GET_ERC20_BALANCE: Empty response from RPC");
-  }
 
   let json;
   try {
@@ -223,10 +215,6 @@ function GET_NATIVE_BALANCE(chain = ChainId.ethereum, account = Default.account)
   const httpResponse = fetchWithRetry_(url, options);
   const responseText = validateJSONResponse_(httpResponse, "GET_NATIVE_BALANCE");
 
-  if (!responseText) {
-    throw new Error("GET_NATIVE_BALANCE: Empty response from RPC");
-  }
-
   let json;
   try {
     json = JSON.parse(responseText);
@@ -260,10 +248,6 @@ function GET_PRICE(coinId = Default.coin, fiat = Default.fiat) {
 
   const httpResponse = fetchWithRetry_(url, options);
   const responseText = validateJSONResponse_(httpResponse, "GET_PRICE");
-
-  if (!responseText) {
-    throw new Error("GET_PRICE: Empty response from CoinGecko API");
-  }
 
   let json;
   try {
@@ -305,7 +289,7 @@ function handleJSONErrors_(json) {
 
 function throwError(message) {
   const spreadsheet = SpreadsheetApp.getActive();
-  spreadsheet.getRangeByName(Range.pricesError).setValue(message);
+  spreadsheet.getRangeByName(NamedRange.pricesError).setValue(message);
   throw new Error(message);
 }
 
@@ -427,6 +411,11 @@ function validateJSONResponse_(response, context) {
     throw new Error(`${context}: Unexpected content type "${contentType}" (expected application/json)`);
   }
 
+  // Check for empty response body
+  if (!trimmedText) {
+    throw new Error(`${context}: Empty response from server (status ${statusCode}, content-type: ${contentType || "none"})`);
+  }
+
   return text;
 }
 
@@ -521,11 +510,11 @@ function getToken_(chainID = ChainId.ethereum, symbol = Default.token) {
 }
 
 function refreshPricesLastUpdatedAt_() {
-  const cell = SpreadsheetApp.getActive().getRangeByName(Range.pricesLastUpdatedAt);
+  const cell = SpreadsheetApp.getActive().getRangeByName(NamedRange.pricesLastUpdatedAt);
   cell.setValue(Utilities.formatDate(new Date(), TIMEZONE, DATE_FORMAT));
 }
 
 function refreshScriptLastRunAt_() {
-  const cell = SpreadsheetApp.getActive().getRangeByName(Range.scriptLastRunAt);
+  const cell = SpreadsheetApp.getActive().getRangeByName(NamedRange.scriptLastRunAt);
   cell.setValue(Utilities.formatDate(new Date(), TIMEZONE, DATE_FORMAT));
 }

@@ -124,7 +124,7 @@ const Default = {
 };
 
 // Make sure to have the following named ranges in your Google Sheet:
-const Range = {
+const NamedRange = {
   prices: "PRICES",
   pricesError: "PRICES_ERROR",
   pricesLastUpdatedAt: "PRICES_LAST_UPDATED_AT",
