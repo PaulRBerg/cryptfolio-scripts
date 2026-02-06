@@ -38,12 +38,24 @@ const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const COINGECKO_API_KEY = "ADD_YOUR_API_KEY_HERE";
 
 /**
- * Alternatively, if you are using this as a library, you can set the API key
- * by calling this function.
+ * If you forked this file, you have to set the RouteMesh API key here.
+ *
+ * @see {@link https://routeme.sh}
+ */
+const ROUTEMESH_API_KEY = "ADD_YOUR_API_KEY_HERE";
+
+/**
+ * Alternatively, if you are using this as a library, you can set the API keys
+ * by calling these functions.
  */
 function setCoinGeckoAPIKey(apiKey) {
   const properties = PropertiesService.getScriptProperties();
   properties.setProperty("COINGECKO_API_KEY", apiKey);
+}
+
+function setRouteMeshAPIKey(apiKey) {
+  const properties = PropertiesService.getScriptProperties();
+  properties.setProperty("ROUTEMESH_API_KEY", apiKey);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -499,7 +511,19 @@ function getCoinGeckoAPIKey_() {
 
 function getRPC_(chainID = ChainId.ethereum) {
   chainID = parseInt(chainID, 10);
+  const routeMeshKey = getRouteMeshAPIKey_();
+  if (routeMeshKey) {
+    return `https://lb.routeme.sh/rpc/${chainID}/${routeMeshKey}`;
+  }
   return RpcUrl[chainID] || RpcUrl.default;
+}
+
+function getRouteMeshAPIKey_() {
+  if (ROUTEMESH_API_KEY !== "ADD_YOUR_API_KEY_HERE") {
+    return ROUTEMESH_API_KEY;
+  }
+  const properties = PropertiesService.getScriptProperties();
+  return properties.getProperty("ROUTEMESH_API_KEY");
 }
 
 function getToken_(chainID = ChainId.ethereum, symbol = Default.token) {
