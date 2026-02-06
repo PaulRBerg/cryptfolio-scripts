@@ -7,7 +7,7 @@
       "devDependencies": {
         "@biomejs/biome": "^2.3.14",
         "@sablier/devkit": "^1.12.1",
-        "prettier": "^3.6.2",
+        "prettier": "^3.8.1",
       },
     },
   },
@@ -32,6 +32,6 @@
 
     "@sablier/devkit": ["@sablier/devkit@1.12.1", "", { "peerDependencies": { "vitest": ">=2.0.0" }, "optionalPeers": ["vitest"] }, "sha512-f6FCJ2m3glP2TLDoqJPJW+mnp955v4gmYPJjG1hks5+yLhEjFPJbHkxtIITZOzuTnhPmZ6x6A7+zJgJW4Rw/5w=="],
 
-    "prettier": ["prettier@3.6.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ=="],
+    "prettier": ["prettier@3.8.1", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg=="],
   }
 }
